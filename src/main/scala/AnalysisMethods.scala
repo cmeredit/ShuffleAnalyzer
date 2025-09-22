@@ -3,7 +3,7 @@ import ShuffleMethods.{Deck, repeatedly, repeatedlyChained}
 object AnalysisMethods {
 
 
-  def averageNeighborDistance(deck: Deck): Double = {
+  private def averageNeighborDistance(deck: Deck): Double = {
 
     (0 until deck.length-1).map(n => {
 
@@ -16,7 +16,9 @@ object AnalysisMethods {
 
   }
 
-  def histogramNeighborDistance(deck: Deck): Vector[(Int, Int)] = {
+  def getAverageNeighborDistance(shuffleMethod: Deck => Deck, initialDeck: Deck, numTrials: Int): Double = (0 until numTrials).map(_ => averageNeighborDistance(shuffleMethod(initialDeck))).sum / numTrials.toDouble
+
+  private def histogramNeighborDistance(deck: Deck): Vector[(Int, Int)] = {
     val distances: IndexedSeq[Int] = (0 until deck.length-1).map(n => {
 
       val nLoc = deck.indexOf(n)
@@ -28,8 +30,6 @@ object AnalysisMethods {
 
     distances.groupBy(x => x).toVector.map({case (l, r) => (l, r.length)})
   }
-
-  def getAverageNeighborDistance(shuffleMethod: Deck => Deck, initialDeck: Deck, numTrials: Int): Double = (0 until numTrials).map(_ => averageNeighborDistance(shuffleMethod(initialDeck))).sum / numTrials.toDouble
 
   def getHistogramNeighborDistance(shuffleMethod: Deck => Deck, initialDeck: Deck, numTrials: Int): Vector[(Int, Double)] = {
     val histograms: IndexedSeq[Vector[(Int, Int)]] = (0 until numTrials).map(trialNum => {
@@ -68,6 +68,6 @@ object AnalysisMethods {
 
   def getNeighborDistanceHeightmap(method: Deck => Deck, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedly(method, n), initialDeck, numTrials).map(p => p._2))
 
-  def getShuffleLandscapeChained(firstMethod: Deck => Deck, secondMethod: Deck => Deck, maxTimesForFirstMethod: Int, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedlyChained(firstMethod, secondMethod, maxTimesForFirstMethod, n), initialDeck, numTrials).map(p => p._2))
+  def getNeighborDistanceHeightmap(firstMethod: Deck => Deck, secondMethod: Deck => Deck, maxTimesForFirstMethod: Int, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedlyChained(firstMethod, secondMethod, maxTimesForFirstMethod, n), initialDeck, numTrials).map(p => p._2))
 
 }
