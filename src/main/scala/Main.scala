@@ -2,7 +2,7 @@ import AnalysisMethods.getNeighborDistanceHeightmap
 import IOUtil.saveHeightmap
 import ShuffleMethods._
 
-object ShuffleTester extends App {
+object Main extends App {
 
   // Saves a "neighbor distance heightmap" for the binomial riffle shuffle (i.e., GSR shuffle).
   // This heightmap is a function H: {0, ..., [deckSize] - 2} x {1, ..., [numShuffles]} defined as follows.
