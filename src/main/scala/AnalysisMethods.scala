@@ -66,7 +66,7 @@ object AnalysisMethods {
 
   }
 
-  def getShuffleLandscape(method: Deck => Deck, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedly(method, n), initialDeck, numTrials).map(p => p._2))
+  def getNeighborDistanceHeightmap(method: Deck => Deck, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedly(method, n), initialDeck, numTrials).map(p => p._2))
 
   def getShuffleLandscapeChained(firstMethod: Deck => Deck, secondMethod: Deck => Deck, maxTimesForFirstMethod: Int, numShuffles: Int, initialDeck: Deck, numTrials: Int): Vector[Vector[Double]] = (1 to numShuffles).toVector.map(n => getHistogramNeighborDistance(repeatedlyChained(firstMethod, secondMethod, maxTimesForFirstMethod, n), initialDeck, numTrials).map(p => p._2))
 

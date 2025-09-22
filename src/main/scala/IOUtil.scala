@@ -2,7 +2,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 
 object IOUtil {
 
-  def saveLandscape(rows: Vector[Vector[Double]], filename: String, xSpacing: Double = 1.0, zSpacing: Double = 1.0, yScale: Double = 1.0): Unit = {
+  def saveHeightmap(rows: Vector[Vector[Double]], filename: String, xSpacing: Double = 1.0, zSpacing: Double = 1.0, yScale: Double = 1.0): Unit = {
 
     // Give us SOMETHING!
     assert(rows.nonEmpty)
