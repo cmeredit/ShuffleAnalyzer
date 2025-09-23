@@ -14,8 +14,29 @@ object ShuffleMethods {
   // Reverse riffle: Assign each card a 0 or 1 with equal probability, then sort the deck by the assigned value (preserving all other order relationships)
   // Riffle: Invert a reverse-riffle permutation.
   def reverseBinomialRiffleShuffle(deck: Deck): Deck = deck.map(n => (n, scala.util.Random.nextInt(2))).sortBy(_._2).map(_._1)
-  def binomialRiffleShuffle(deck: Deck): Deck = deck.zip(reverseBinomialRiffleShuffle(deck)).sortBy(_._2).map(_._1)
+//  def binomialRiffleShuffle(deck: Deck): Deck = deck.zip(reverseBinomialRiffleShuffle(deck)).sortBy(_._2).map(_._1)
 
+  def binomialRiffleShuffle(deck: Deck): Deck = {
+    scala.util.Random.setSeed(System.nanoTime())
+    val splittingLocation: Int = deck.map(_ => scala.util.Random.nextInt(2)).sum
+    var bottomBlock: Deck = deck.take(splittingLocation)
+    var topBlock: Deck = deck.drop(splittingLocation)
+    var shuffledDeck: Deck = Vector()
+
+    while (bottomBlock.nonEmpty || topBlock.nonEmpty) {
+      // When the blocks have sizes A and B, we want to take from the first block with probability A / (A + B).
+      val sample = scala.util.Random.nextInt(bottomBlock.length + topBlock.length)
+      if (sample < bottomBlock.length) {
+        shuffledDeck = shuffledDeck.appended(bottomBlock.head)
+        bottomBlock = bottomBlock.drop(1)
+      } else {
+        shuffledDeck = shuffledDeck.appended(topBlock.head)
+        topBlock = topBlock.drop(1)
+      }
+    }
+
+    shuffledDeck
+  }
 
   // Place card 1 in pile 1, card 2 in pile 2, ..., card n in pile n, card n+1 in pile 1, etc., until running out of cards.
   // Then stack the piles on each other in order.
