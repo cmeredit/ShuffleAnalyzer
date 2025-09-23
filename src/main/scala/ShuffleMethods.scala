@@ -3,6 +3,7 @@ object ShuffleMethods {
   // Distribution options. Relevant to split/mash shuffling below.
   sealed trait DistOption
   case object Binomial extends DistOption
+  case class BiasedBinomial(lowerBound: Double, upperBound: Double) extends DistOption
   case object Uniform extends DistOption
 
   // Type alias for readability.
@@ -62,6 +63,10 @@ object ShuffleMethods {
     val splitLocation: Int = splitType match {
       case Uniform => scala.util.Random.nextInt(deck.length)
       case Binomial => (1 until deck.length).map(_ => scala.util.Random.nextInt(2)).sum
+      case BiasedBinomial(lowerBound, upperBound) =>
+        val lowerIndex = scala.math.floor(lowerBound * deck.length.toDouble).toInt + 1
+        val upperIndex = scala.math.floor(upperBound * deck.length.toDouble).toInt
+        lowerIndex - 1 + (lowerIndex until upperIndex).map(_ => scala.util.Random.nextInt(2)).sum
     }
 
     val topShiftAmount: Int = mashType match {
