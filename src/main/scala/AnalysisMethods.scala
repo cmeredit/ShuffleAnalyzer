@@ -138,8 +138,13 @@ object AnalysisMethods {
   def getTransitionRows(transitionMatrix: TransitionMatrix): Vector[Vector[Double]] = {
     // keys: Source card
     // Values: Probability of transition from source to target
-    val transitionsBySource: Map[Int, Vector[(Int, Double)]] = transitionMatrix.toVector.groupBy(_._1._1).map({case (source, instances) => (source, instances.map({case ((_, target), probability) => (target, probability)}).sortBy(_._1))})
+    val transitionsBySource: Map[Int, Vector[(Int, Double)]] = transitionMatrix.toVector.groupBy(_._1._1).map({case (source, instances) => (source, instances.map({case ((_, target), probability) => (target, probability)}))})
     // Convert to vector, sort by source card, then extract just the transition probabilities.
-    transitionsBySource.toVector.sortBy(_._1).map(_._2.map(_._2))
+    val taggedTransitionVec: Vector[(Int, Vector[(Int, Double)])] = transitionsBySource.toVector.sortBy(_._1).map({case (source, targetProbabilities) => (source, targetProbabilities.sortBy(_._1))})
+    val untaggedTransitions: Vector[Vector[Double]] = taggedTransitionVec.map(_._2).map(targetProbabilities => targetProbabilities.map(_._2))
+    // Each element of untaggedTransitions gives the transition probabilities *from* a particular source.
+    // However, it's more conventional to have the rows of a transition matrix give the transition probabilities *to* a particular target.
+    // This lets us represent densities as column vectors and transitions via matrix multiplication.
+    untaggedTransitions.transpose
   }
 }
