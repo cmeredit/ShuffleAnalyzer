@@ -9,7 +9,7 @@ object IOUtil {
     assert(rows.head.nonEmpty)
     // All rows must have the same length
 //    rows foreach println
-    rows.map(_.length) foreach println
+//    rows.map(_.length) foreach println
     assert(rows.map(_.length).distinct.length == 1)
 
 //    val numRows: Int = rows.length
