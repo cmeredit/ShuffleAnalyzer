@@ -1,4 +1,7 @@
+import java.awt.Image
+import java.awt.image.BufferedImage
 import java.io.{BufferedWriter, File, FileWriter}
+import javax.imageio.ImageIO
 
 object IOUtil {
 
@@ -52,6 +55,77 @@ object IOUtil {
 
     bw.close()
 
+  }
+
+  private val identityFunction: Double => Double = x => x
+  def savePNG(rows: Vector[Vector[Double]], filename: String, colors: Vector[Int], widthOverride: Option[Int] = None, heightOverride: Option[Int] = None, adjustmentFunction: Double => Double = identityFunction, normalize: Boolean = false): Unit = {
+    val imageWidth = rows.head.length
+    val imageHeight = rows.length
+    val image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
+
+    // Have to transpose the data... again.
+    val flatData: Vector[Double] = rows.transpose.flatten
+    val adjustedData: Vector[Double] = flatData.map(adjustmentFunction)
+    val minParam: Double = adjustedData.min
+    val maxParam: Double = adjustedData.max
+    val paramSpread: Double = maxParam - minParam
+    val interpolationParameters: Vector[Double] = if (normalize) adjustedData.map(param => (param - minParam) / paramSpread) else adjustedData
+
+    val pixelArray = interpolationParameters.map(param => {
+
+      if (param == 1.0) {
+        colors.last
+      } else {
+        val fractionalColorIndex: Double = param * (colors.length - 1)
+        val lowerColorIndex: Int = fractionalColorIndex.floor.toInt
+
+
+//        println(f"Interpolation param: $param")
+//        println(f"Fractional Color Index: $fractionalColorIndex")
+//        println(f"Lower Color Index: $lowerColorIndex")
+        val lowerColorInt = colors(lowerColorIndex)
+        val upperColorInt = colors(lowerColorIndex + 1)
+
+        case class ARGB(a: Double, r: Double, g: Double, b: Double) {
+          def toARGBInt: Int = (a.floor.toInt << 24) + (r.floor.toInt << 16) + (g.floor.toInt << 8) + b.floor.toInt
+          def interpolate(other: ARGB, t: Double): ARGB = ARGB(
+            a * (1.0 - t) + t * other.a,
+            r * (1.0 - t) + t * other.r,
+            g * (1.0 - t) + t * other.g,
+            b * (1.0 - t) + t * other.b
+          )
+        }
+        object ARGB {
+          def apply(argbInt: Int): ARGB = ARGB(
+            (argbInt >> 24) & 0xFF,
+            (argbInt >> 16) & 0xFF,
+            (argbInt >> 8) & 0xFF,
+            argbInt & 0xFF
+          )
+        }
+
+        val interpolatedColor: ARGB = ARGB(lowerColorInt).interpolate(ARGB(upperColorInt), fractionalColorIndex % 1.0)
+
+        interpolatedColor.toARGBInt
+      }
+
+    }).toArray
+
+    image.setRGB(0, 0, imageWidth, imageHeight, pixelArray, 0, imageWidth)
+
+    val finalImage: BufferedImage = if (widthOverride.nonEmpty || heightOverride.nonEmpty) {
+      val newWidth = widthOverride.getOrElse(imageWidth)
+      val newHeight = heightOverride.getOrElse(imageHeight)
+      val scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT)
+      val scaledBufferedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB)
+      val graphics = scaledBufferedImage.createGraphics()
+      graphics.drawImage(scaledImage, 0, 0, null)
+      graphics.dispose()
+      scaledBufferedImage
+    } else {
+      image
+    }
+    ImageIO.write(finalImage, "png", new File(filename))
   }
 
 }
